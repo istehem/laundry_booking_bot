@@ -1,6 +1,7 @@
 import sys
 import os
 import urllib
+import urllib2
 import datetime
 
 USER='1234'
@@ -16,11 +17,13 @@ PANEL_ID=48033
 #Treshhold, maximum number of days
 TRESH = 100
 
-LOGIN_URL="https://www.sgsstudentbostader.se/Assets/Handlers/MOMENTUM.ashx"
 BOOK_URL="https://tvatta.sgsstudentbostader.se/wwwashwait.aspx"
+LOGIN_URL="https://marknad.sgsstudentbostader.se/API/Service/AuthorizationServiceHandler.ashx"
 
 def main():
-    opener = urllib.FancyURLopener({})
+    doLogin()
+#    book()
+#    book()
 #    f = opener.open(LOGIN_URL)
 #    if f.read() == "Logged in":
 #        print "already loggid in"
@@ -28,10 +31,10 @@ def main():
 #    else:
 #        doLogin()
     #doLogin()
-    if book():
-        print "booked a shift"
-    else:
-        print "booking failed"
+#    if book():
+#        print "booked a shift"
+#    else:
+#        print "booking failed"
 
 def book():
     for i in range(0,TRESH):
@@ -45,10 +48,18 @@ def try_to_book (date,interval):
     if interval < 0 or interval > 7:
         #invalid interval
         return False
-    opener = urllib.FancyURLopener({})
-    f = opener.open(BOOK_URL + "?command=book&PanelId=" + str(PANEL_ID) + "&TypeId=" + str(TYPE_ID) + \
-            "&GroupId=" + str(GROUP_ID) + "&Date=" + date + "&IntervalId=" + str(interval))
-    print f.read()
+    values = { 'command'    : 'book',
+               'PanelId'    : str(PANEL_ID),
+               'TypeId'     : TYPE_ID,
+               'GroupId'    : str(GROUP_ID),
+               'Date'       : date,
+               'IntervalId' : str(interval)
+            }
+    data = urllib.urlencode(values)
+    req = urllib2.Request(BOOK_URL, data)
+    response = urllib2.urlopen(req)
+    the_page = response.read()
+    print the_page
     return True
 
 #return a date string using format "yyyy-mm-dd"
@@ -63,23 +74,52 @@ def getInterval():
     return 0
 
 def doLogin():
-    isresident='true'
-    customerid=USER
-    loggedin='true'
-    customerstatus='1'
-    laundry='true'
-    customerName='hej'
-    laundry='trams'
-    token=PASS
-    gets = "isresident=" + isresident + \
-           "&customerid=" + customerid + \
-           "&loggedin=" + loggedin + \
-           "&customerstatus=" + customerstatus + \
-           "&tvattstuga=" + laundry + \
-           "&customer_name=" + customerName + \
-           "&token=" + token
-    os.system("curl " + LOGIN_URL + '?' + gets)
+    values = {'syndicateNo' : '1',
+              'syndicateObjectMainGroupNo' : '1',
+              'username' : '122182',
+              'password' : '3248',
+              'Method'   : 'APILoginSGS',
+              'callback' : 'jsonp1403793470251'}
+    url_values = urllib.urlencode(values)
+    full_url = LOGIN_URL + '?' + url_values
+    user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
+    req = urllib2.Request(full_url)
+    req.add_header('User-Agent', user_agent)
+    req.add_header('Accept-Encoding', 'gzip')
 
+    contents = ""
+    try:
+        data = urllib2.urlopen(req)
+        contents = data.read()
+    except urllib2.HTTPError, e:
+        contents = e.read()
+        print e.geturl()
+    #print contents
+
+    #req = urllib2.Request(LOGIN_URL,data)
+    #response = urllib2.urlopen(req)
+    #the_page = response.read()
+    #print the_page
+
+    #req = urllib2.urlopen("https://marknad.sgsstudentbostader.se/API/Service/AuthorizationServiceHandler.ashx?&syndicateNo=1&syndicateObjectMainGroupNo=1&username=122182&password=3248&Method=APILoginSGS&callback=jsonp140379347025")
+    #print res.read()
+#    isresident='true'
+#    customerid=USER
+#    loggedin='true'
+#    customerstatus='1'
+#    laundry='true'
+#    customerName='hej'
+#    laundry='trams'
+#    token=PASS
+#    gets = "isresident=" + isresident + \
+#           "&customerid=" + customerid + \
+#           "&loggedin=" + loggedin + \
+#           "&customerstatus=" + customerstatus + \
+#           "&tvattstuga=" + laundry + \
+#           "&customer_name=" + customerName + \
+#           "&token=" + token
+#    os.system("curl " + LOGIN_URL + '?' + gets)
+#
 
 if __name__ == '__main__':
     main()
