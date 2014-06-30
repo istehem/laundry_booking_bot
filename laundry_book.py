@@ -23,10 +23,8 @@ BOOK_URL="https://tvatta.sgsstudentbostader.se/wwwashwait.aspx"
 LOGIN_URL="https://marknad.sgsstudentbostader.se/API/Service/AuthorizationServiceHandler.ashx"
 
 def main():
-#     tst()
-    doLogin()
-#    book()
-#    book()
+    cj = doLogin()
+#    book(cj)
 #    f = opener.open(LOGIN_URL)
 #    if f.read() == "Logged in":
 #        print "already loggid in"
@@ -39,15 +37,15 @@ def main():
 #    else:
 #        print "booking failed"
 
-def book():
+def book(cj):
     for i in range(0,TRESH):
         date = getDate(i)
         for interval in range(0,7):
-            if try_to_book(date,interval):
+            if try_to_book(cj,date,interval):
                 return True
     return False
 
-def try_to_book (date,interval):
+def try_to_book (cj,date,interval):
     if interval < 0 or interval > 7:
         #invalid interval
         return False
@@ -60,6 +58,7 @@ def try_to_book (date,interval):
             }
     data = urllib.urlencode(values)
     req = urllib2.Request(BOOK_URL, data)
+    cj.add_cookie_header(req)
     response = urllib2.urlopen(req)
     the_page = response.read()
     print the_page
@@ -93,29 +92,26 @@ def doLogin():
               'callback' : 'jsonp1403793470251'}
     url_values = urllib.urlencode(values)
     full_url = LOGIN_URL + '?' + url_values
-    #cj = cookielib.CookieJar()
-    #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    cj = cookielib.FileCookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    opener.addheaders = headers.items()
     #user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0 Iceweasel/29.0.1"
     #opener.addheaders = [('User-Agent',user_agent)]
-    req = urllib2.Request(full_url,headers=headers)
+    #req = urllib2.Request(full_url,headers=headers)
     #req = urllib2.Request(full_url,header)
-    contents = ""
     try:
-        #data = opener.open(full_url)
-        data = urllib2.urlopen(req)
+        data = opener.open(full_url)
+        #data = urllib2.urlopen(req)
         contents = data.read()
         print data.info()
         print contents
     except urllib2.HTTPError, e:
         contents = e.read()
         print e.geturl()
-
-    #req = urllib2.Request(LOGIN_URL,data)
-    #response = urllib2.urlopen(req)
-    #the_page = response.read()
-    #print the_page
-
-    #req = urllib2.urlopen("https://marknad.sgsstudentbostader.se/API/Service/AuthorizationServiceHandler.ashx?&syndicateNo=1&syndicateObjectMainGroupNo=1&username=122182&password=3248&Method=APILoginSGS&callback=jsonp140379347025")
+        exit(1)
+    print cj
+    return cj
+#req = urllib2.urlopen("https://marknad.sgsstudentbostader.se/API/Service/AuthorizationServiceHandler.ashx?&syndicateNo=1&syndicateObjectMainGroupNo=1&username=122182&password=3248&Method=APILoginSGS&callback=jsonp140379347025")
     #print res.read()
 #    isresident='true'
 #    customerid=USER
@@ -134,21 +130,6 @@ def doLogin():
 #           "&token=" + token
 #    os.system("curl " + LOGIN_URL + '?' + gets)
 #
-
-
-def tst():
-    headers = {
-            'Host' : 'marknad.sgsstudentbostader.se',
-            'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0 Iceweasel/29.0.1',
-            'Accept' :  '*/*',
-            'Accept-Language' : 'en-US,en;q=0.5',
-            'Accept-Encoding' : 'gzip, deflate',
-            'Referer' : 'https://www.sgsstudentbostader.se/se/mina-sidor',
-            'Connection' : 'keep-alive'
-            }
-    req = urllib2.Request("http://istehem.rot.sgsnet.se",headers=headers)
-    data = urllib2.urlopen(req)
-    print data.read()
 
 
 if __name__ == '__main__':
