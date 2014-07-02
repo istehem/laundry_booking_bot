@@ -8,8 +8,10 @@ import datetime
 import cookielib
 
 
-USER='1234'
+USER='122182'
 PASS='1234'
+#The ocject number of your apartment
+OBJECT_NUMBER='503004325'
 
 #Not sure what this means, maybe your aptus id? (seems to be static)
 TYPE_ID=260685
@@ -31,16 +33,15 @@ HEADERS = {
             'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0 Iceweasel/29.0.1',
             'Accept' :  '*/*',
             'Accept-Encoding' : 'utf-8',
-
           }
 
 def main():
     opener = create_opener()
-    opener = hack_login(opener)
-    #try_to_book(opener,getDate(3),7)
-    data = get_calendar(opener,0)
+    #opener = hack_login(opener)
+    try_to_book(opener,getDate(3),get_interval())
     #data = get_calendar(opener,0)
-    print data.read()
+    #data = get_calendar(opener,0)
+    #print data.read()
 
 def book(opener):
     for i in range(0,TRESH):
@@ -77,11 +78,11 @@ def getDate(i):
     return ('%i-%02i-%02i' % (now.year,now.month,now.day))
 
 #each day is diveded into 8 intervals (0-7), 4h*8 = 24h = 1 day
-#return the current interval
-def getInterval():
-    return 0
-
-
+#first shift (0) starts at 01:00
+#return the current interval.
+def get_interval():
+   now = datetime.datetime.now()
+   return ((now.hour + 24 - 1) % 24) / 3
 
 def create_opener():
     cj = cookielib.CookieJar()
@@ -94,9 +95,9 @@ def create_opener():
 def hack_login(opener):
     values = {'isresident'    : 'true',
               'loggedin'      : 'true',
-              'customerid'    : '122182',
+              'customerid'    : USER,
               'tvattstuga'    : 'true',
-              'customer_name' : '503004325'
+              'customer_name' : OBJECT_NUMBER
              }
     url_values = urllib.urlencode(values)
     full_url = LOGIN_URL + '?' + url_values
@@ -106,7 +107,7 @@ def hack_login(opener):
 
 
 def login(opener):
-    pass
+    return NotImplemented
 
 def get_calendar(opener,week_offset):
     values = {
@@ -119,7 +120,6 @@ def get_calendar(opener,week_offset):
     full_url = CALENDAR_URL + '?' + url_values
     data = opener.open(full_url)
     return data
-
 
 if __name__ == '__main__':
     main()
