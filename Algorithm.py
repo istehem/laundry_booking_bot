@@ -8,5 +8,5 @@ class Algorithm:
         "starts the algorithm"
         return
     @abc.abstractmethod
-    def sleep():
+    def sleep(self):
         "should return an integer (seconds to sleep)"
