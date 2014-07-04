@@ -25,17 +25,18 @@ GROUP_ID=267946
 #uknown
 PANEL_ID=48033
 
-def create_opener():
+
+class SGS_bot:
+    def __init__(self,algo):
+        self.alogrithm = algo
+        self.opener = self.create_opener()
+
+    def create_opener(self):
         cj = cookielib.CookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
         opener.addheaders = HEADERS.items()
         urllib2.install_opener(opener)
         return opener
-
-class SGS_bot:
-    def __init__(self,algo):
-        self.alogrithm = algo
-        self.opener = create_opener()
 
     def book(self):
         algorithm()
@@ -47,7 +48,6 @@ class SGS_bot:
     def get_interval():
         now = datetime.datetime.now()
         return ((now.hour + 24 - 1) % 24) / 3
-
 
     def get_calendar(self,week_offset):
         values = {
