@@ -6,6 +6,7 @@ import urllib
 import urllib2
 import datetime
 import cookielib
+from SGS_bot import *
 
 
 USER='122182'
@@ -36,9 +37,13 @@ HEADERS = {
           }
 
 def main():
-    opener = create_opener()
+    bot = SGS_bot(None)
+    bot.hack_login()
+    data = bot.get_calendar(0)
+    print data.read()
+    #opener = create_opener()
     #opener = hack_login(opener)
-    try_to_book(opener,getDate(3),get_interval())
+    #try_to_book(opener,getDate(3),get_interval())
     #data = get_calendar(opener,0)
     #data = get_calendar(opener,0)
     #print data.read()
