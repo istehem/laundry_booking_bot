@@ -3,9 +3,11 @@ import urllib2
 import datetime
 import cookielib
 import time
-from Algorithm import Algorithm
+import abc
 
 class SGS_bot:
+    __metaclass__ = abc.ABCMeta
+
     USER='122182'
     PASS='1234'
     #The ocject number of your apartment
@@ -30,11 +32,10 @@ class SGS_bot:
             'Accept-Encoding' : 'utf-8',
           }
 
-    def __init__(self,algorithm, use_hack=True):
-        assert(isinstance(algorithm,Algorithm)), "The algorithm is not an instance of the Algorithm class"
+    def __init__(self,use_hack=True):
         self.USE_HACK = use_hack
-        self.algorithm = algorithm
         self.opener = self.create_opener()
+        self.run()
 
     def create_opener(self):
         cj = cookielib.CookieJar()
@@ -42,12 +43,6 @@ class SGS_bot:
         opener.addheaders = self.HEADERS.items()
         urllib2.install_opener(opener)
         return opener
-
-    def book(self):
-        alg = this.algorithm()
-        while True:
-            alg.run()
-            time.sleep(alg.sleep())
 
     def getDate(self,i):
         now =    datetime.datetime.now() + datetime.timedelta(days=i)
@@ -72,8 +67,8 @@ class SGS_bot:
         data = self.opener.open(full_url)
         return data
 
-    def login(self,opener):
-        return NotImplemented
+    def login(self):
+        raise NotImplementedError, "Implement login or use hack_login"
 
     #Security hole, allows this
     def hack_login(self):
@@ -87,3 +82,9 @@ class SGS_bot:
         full_url = self.LOGIN_URL + '?' + url_values
         self.opener.open(full_url)
         self.opener.open('https://www.sgsstudentbostader.se/ext_gw.aspx?module=wwwash&lang=se?loggedin=true')
+    @abc.abstractmethod
+    def run(self):
+        "starts the algorithm"
+    @abc.abstractmethod
+    def sleep(self):
+        "should return an integer (seconds to sleep)"
