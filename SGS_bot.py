@@ -8,11 +8,6 @@ import abc
 class SGS_bot:
     __metaclass__ = abc.ABCMeta
 
-    USER='122182'
-    PASS='1234'
-    #The ocject number of your apartment
-    OBJECT_NUMBER='503004325'
-
     #Not sure what this means, maybe your aptus id? (seems to be static)
     TYPE_ID=260685
     #Probably this is the Id for Rotary (seems to be static)
@@ -35,6 +30,8 @@ class SGS_bot:
     def __init__(self,use_hack=True):
         self.USE_HACK = use_hack
         self.opener = self.create_opener()
+        self.USER = str(self.user_number())
+        self.OBJECT_NUMBER=str(self.object_number())
         self.run()
 
     def create_opener(self):
@@ -67,7 +64,7 @@ class SGS_bot:
         data = self.opener.open(full_url)
         return data
 
-    def login(self):
+    def login(self,pin):
         raise NotImplementedError, "Implement login or use hack_login"
 
     #Security hole, allows this
@@ -82,9 +79,15 @@ class SGS_bot:
         full_url = self.LOGIN_URL + '?' + url_values
         self.opener.open(full_url)
         self.opener.open('https://www.sgsstudentbostader.se/ext_gw.aspx?module=wwwash&lang=se?loggedin=true')
+
     @abc.abstractmethod
     def run(self):
         "starts the algorithm"
     @abc.abstractmethod
-    def sleep(self):
-        "should return an integer (seconds to sleep)"
+    def object_number(self):
+        "should return an integer specifying an object number for the apartment"
+    @abc.abstractmethod
+    def user_number(self):
+        "should return an integer specifying an user number"
+
+
