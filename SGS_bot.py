@@ -3,6 +3,7 @@ import urllib2
 import datetime
 import cookielib
 import time
+from Algorithm import Algorithm
 
 class SGS_bot:
     USER='122182'
@@ -30,6 +31,7 @@ class SGS_bot:
           }
 
     def __init__(self,algorithm, use_hack=True):
+        assert(isinstance(algorithm,Algorithm)), "The algorithm is not an instance of the Algorithm class"
         self.USE_HACK = use_hack
         self.algorithm = algorithm
         self.opener = self.create_opener()
