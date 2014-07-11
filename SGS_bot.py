@@ -8,7 +8,7 @@ import abc
 class SGS_bot:
     __metaclass__ = abc.ABCMeta
 
-    #Not sure what this means, maybe your aptus id? (seems to be static)
+    #: Not sure what this means, maybe your aptus id? (seems to be static) """
     TYPE_ID=260685
     #Probably this is the Id for Rotary (seems to be static)
     GROUP_ID=267946
@@ -19,16 +19,13 @@ class SGS_bot:
     CALENDAR_URL='https://tvatta.sgsstudentbostader.se/wwwashcalendar.aspx'
     LOGIN_URL="https://www.sgsstudentbostader.se/Assets/Handlers/Momentum.ashx"
 
-    USE_HACK=True
-
     HEADERS = {
             'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0 Iceweasel/29.0.1',
             'Accept' :  '*/*',
             'Accept-Encoding' : 'utf-8',
           }
 
-    def __init__(self,use_hack=True):
-        self.USE_HACK = use_hack
+    def __init__(self):
         self.opener = self.create_opener()
         self.USER = str(self.user_number())
         self.OBJECT_NUMBER=str(self.object_number())
@@ -42,17 +39,21 @@ class SGS_bot:
         return opener
 
     def getDate(self,i):
+        """ returns the current date with offset i """
         now =    datetime.datetime.now() + datetime.timedelta(days=i)
         return ('%i-%02i-%02i' % (now.year,now.month,now.day))
 
-    #each day is diveded into 8 intervals (0-7), 4h*8 = 24h = 1 day
-    #first shift (0) starts at 01:00
-    #return the current interval.
     def get_interval():
+        """
+        each day is diveded into 8 intervals (0-7), 4h*8 = 24h = 1 day
+        first shift (0) starts at 01:00
+        returns the current interval.
+        """
         now = datetime.datetime.now()
         return ((now.hour + 24 - 1) % 24) / 3
 
     def get_calendar(self,week_offset):
+        """ should return free shifts for a week """
         values = {
             'panelId'    : str(self.PANEL_ID),
             'weekOffset' : str(week_offset),
@@ -65,10 +66,13 @@ class SGS_bot:
         return data
 
     def login(self,pin):
+        """ not implemented yet, raises and error """
         raise NotImplementedError, "Implement login or use hack_login"
 
-    #Security hole, allows this
     def hack_login(self):
+        """ logs in to the booking system
+            this is hack and works due to a security hole
+        """
         values = {'isresident': 'true',
               'loggedin'      : 'true',
               'customerid'    : self.USER,
@@ -82,12 +86,18 @@ class SGS_bot:
 
     @abc.abstractmethod
     def run(self):
-        "starts the algorithm"
+        """ abstract method
+            starts the algorithm
+        """
     @abc.abstractmethod
     def object_number(self):
-        "should return an integer specifying an object number for the apartment"
+        """ abstract method
+            should return an integer specifying an object number for the apartment
+        """
     @abc.abstractmethod
     def user_number(self):
-        "should return an integer specifying an user number"
+        """ abstract method
+            should return an integer specifying an user number
+        """
 
 
