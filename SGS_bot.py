@@ -4,6 +4,7 @@ import datetime
 import cookielib
 import time
 import abc
+import sys
 
 class SGS_bot:
     __metaclass__ = abc.ABCMeta
@@ -15,7 +16,7 @@ class SGS_bot:
     #uknown
     PANEL_ID=48033
 
-    BOOK_URL="https://tvatta.sgsstudentbostader.se/wwwashwait.aspx"
+    BOOK_URL="https://tvatta.sgsstudentbostader.se/wwwashcommand.aspx"
     CALENDAR_URL='https://tvatta.sgsstudentbostader.se/wwwashcalendar.aspx'
     LOGIN_URL="https://www.sgsstudentbostader.se/Assets/Handlers/Momentum.ashx"
 
@@ -38,12 +39,34 @@ class SGS_bot:
         urllib2.install_opener(opener)
         return opener
 
-    def getDate(self,i):
+    def try_to_book (self,date,interval):
+        if interval < 0 or interval > 7:
+            #invalid interval
+            return False
+        values = {'command'    : 'book',
+                  'PanelId'    : str(self.PANEL_ID),
+                  'TypeId'     : str(self.TYPE_ID),
+                  'GroupId'    : str(self.GROUP_ID),
+                  'Date'       : date,
+                  'IntervalId' : str(interval),
+                  'NextPage'   : ''
+                 }
+        url_values = urllib.urlencode(values)
+        full_url = self.BOOK_URL + '?' + url_values
+        data = self.opener.open(full_url)
+
+        #different error pages may contains the follow strings
+        #ej bokningsbart
+        #Max antal framtida pass
+
+        return "Bokningstider" in data.read()
+
+    def get_date(self,i):
         """ returns the current date with offset i """
-        now =    datetime.datetime.now() + datetime.timedelta(days=i)
+        now = datetime.datetime.now() + datetime.timedelta(days=i)
         return ('%i-%02i-%02i' % (now.year,now.month,now.day))
 
-    def get_interval():
+    def get_interval(self):
         """
         each day is diveded into 8 intervals (0-7), 4h*8 = 24h = 1 day
         first shift (0) starts at 01:00

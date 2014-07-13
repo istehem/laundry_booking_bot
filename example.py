@@ -1,10 +1,13 @@
 from SGS_bot import *
+import sys
 
 class MyBot(SGS_bot):
     def run(self):
         self.hack_login()
-        data = self.get_calendar(0)
-        print data.read()
+        if self.try_to_book(self.get_date(1),self.get_interval()):
+            print "success"
+        else:
+            print "fail"
     def object_number(self):
         return 503004325
     def user_number(self):
