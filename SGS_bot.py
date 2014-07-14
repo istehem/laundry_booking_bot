@@ -40,6 +40,10 @@ class SGS_bot:
         return opener
 
     def try_to_book (self,date,interval):
+        """
+            triess to book a shift
+            returns True if shift was booked False otherwise
+        """
         if interval < 0 or interval > 7:
             #invalid interval
             return False
@@ -55,9 +59,34 @@ class SGS_bot:
         full_url = self.BOOK_URL + '?' + url_values
         data = self.opener.open(full_url)
 
-        #different error pages may contains the follow strings
+        #different error pages may contains the following strings
         #ej bokningsbart
         #Max antal framtida pass
+
+        return "Bokningstider" in data.read()
+
+    def try_to_unbook(self,date,interval):
+        """
+            tries to unbook a shift
+            returns True if shift was unbooked False otherwise
+        """
+        if interval < 0 or interval > 7:
+            #invalid interval
+            return False
+        values = {'command'    : 'cancel',
+                  'PanelId'    : str(self.PANEL_ID),
+                  'TypeId'     : str(self.TYPE_ID),
+                  'GroupId'    : str(self.GROUP_ID),
+                  'Date'       : date,
+                  'IntervalId' : str(interval),
+                  'NextPage'   : ''
+                 }
+        url_values = urllib.urlencode(values)
+        full_url = self.BOOK_URL + '?' + url_values
+        data = self.opener.open(full_url)
+
+        #different error pages may contains the following strings
+        #There is no row at position 0.
 
         return "Bokningstider" in data.read()
 
