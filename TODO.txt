@@ -1,10 +1,2 @@
-avänd en class som heter sgs-bokning
-
-denna innehåller bland annat en class variable som är en "opener"
-
-denna innehåller ocskå en klassvariable som skall innehålla
-algoritmen för bokningen som sätts i konstruktorn.
-Denna klassvariable är förslagsvis ett interface som måste ha en
-parameter SLEEP för hur ofta algoritmen skall köras, bestämmer
-namn på funktioner etcetera.
-
+Right now only machine 1-2 can be booked, this should
+be extended to all machines

@@ -73,7 +73,7 @@ def try_to_book (opener,date,interval):
     data = opener.open(full_url)
     print full_url
     data = get_calendar(opener,0)
-    #print full_url
+    print full_url
     return True
 
 #return a date string using format "yyyy-mm-dd"

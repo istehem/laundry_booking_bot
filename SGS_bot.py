@@ -5,6 +5,7 @@ import cookielib
 import time
 import abc
 import sys
+import re
 
 class SGS_bot:
     __metaclass__ = abc.ABCMeta
@@ -19,6 +20,7 @@ class SGS_bot:
     BOOK_URL="https://tvatta.sgsstudentbostader.se/wwwashcommand.aspx"
     CALENDAR_URL='https://tvatta.sgsstudentbostader.se/wwwashcalendar.aspx'
     LOGIN_URL="https://www.sgsstudentbostader.se/Assets/Handlers/Momentum.ashx"
+    BOOKINGS_URL="https://tvatta.sgsstudentbostader.se/wwwashbookings.aspx"
 
     HEADERS = {
             'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0 Iceweasel/29.0.1',
@@ -41,7 +43,7 @@ class SGS_bot:
 
     def try_to_book (self,date,interval):
         """
-            triess to book a shift
+            tries to book a shift
             returns True if shift was booked False otherwise
         """
         if interval < 0 or interval > 7:
@@ -87,8 +89,18 @@ class SGS_bot:
 
         #different error pages may contains the following strings
         #There is no row at position 0.
+        print data.read()
 
         return "Bokningstider" in data.read()
+
+    def get_booked_shift(self):
+        #data = self.opener.open(self.BOOKINGS_URL)
+        #print data.read()
+        f = open("calendar.html")
+        html = f.read().replace('\n','')
+        m = re.search('.*Bokade\spass(.*)',html)
+        print m.group(1)
+        #print html
 
     def get_date(self,i):
         """ returns the current date with offset i """
