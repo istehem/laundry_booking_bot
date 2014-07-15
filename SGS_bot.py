@@ -67,6 +67,17 @@ class SGS_bot:
 
         return "Bokningstider" in data.read()
 
+    def try_to_auto_unbook(self):
+        """ 
+            unbooks booked shift 
+            slower then try_to_book, since it must check for booked shift
+        """
+        d = self.get_booked_shift()
+        if not d:
+           return False
+        else:
+           return self.try_to_unbook(d['date'],d['interval'])
+
     def try_to_unbook(self,date,interval):
         """
             tries to unbook a shift
@@ -89,19 +100,29 @@ class SGS_bot:
 
         #different error pages may contains the following strings
         #There is no row at position 0.
-        print data.read()
-
+        
         return "Bokningstider" in data.read()
 
     def get_booked_shift(self):
-        #data = self.opener.open(self.BOOKINGS_URL)
-        #print data.read()
-        f = open("calendar.html")
-        html = f.read().replace('\n','')
-        m = re.search('.*Bokade\spass(.*)',html)
-        print m.group(1)
-        #print html
-
+        """
+            if a shift is booked return a dict containing the date, 
+            booked machines and interval otherwise return None
+        """
+        data = self.opener.open(self.BOOKINGS_URL)
+        html = html = data.read()
+        cleanr = re.compile('<.*?>')
+        text = re.sub(cleanr,'',html)
+        m = re.search('rden(\d\d\d\d-\d\d-\d\d).*(\d-\d)(\d\d):\d\d-\d\d:\d\d',text)
+        d = dict()
+        if m:
+            d['date']     = m.group(1)
+            d['machines'] = m.group(2)
+            #group 3 is the hour when the shift starts
+            d['interval'] = ((int(m.group(3)) + 24 - 1) % 24) / 3
+        else:
+            d = None
+        return d 
+    
     def get_date(self,i):
         """ returns the current date with offset i """
         now = datetime.datetime.now() + datetime.timedelta(days=i)
