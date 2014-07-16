@@ -162,10 +162,6 @@ class SGS_bot:
         full_url = self.CALENDAR_URL + '?' + url_values
         data = self.opener.open(full_url)
         html = data.read()
-        #return data
-#        f = open('calendar.html')
-#        html = f.read()
-#        f.close()
         r = re.compile('<img src="images/icon.*?gif.*?>')
         xs = r.findall(html)
         d = {
