@@ -148,7 +148,67 @@ class SGS_bot:
         url_values = urllib.urlencode(values)
         full_url = self.CALENDAR_URL + '?' + url_values
         data = self.opener.open(full_url)
-        return data
+        html = data.read()
+        #return data
+#        f = open('calendar.html')
+#        html = f.read()
+#        f.close()
+        r = re.compile('<img src="images/icon.*?gif.*?>')
+        xs = r.findall(html)
+        d = {
+               'free'     : [],
+               'passed'   : [],
+               'reserved' : [],
+               'booked'   : []
+            }
+        
+        r = re.compile('icon_(.*?)\.gif')
+        statuses = {
+                    'plus'   : 'free',
+                    'no'     : 'reserved',
+                    'no_not' : 'passed',
+                    'own'    : 'booked'
+                   }
+        for i, row in enumerate(xs):
+            text = r.search(row).group(1)
+            text = statuses[text]
+            d[(i % 7, i / 7)] = text   
+            ys = d[text]
+            ys.append((i % 7, i / 7))
+            d[text] = ys             
+            
+        return d
+
+    def get_free_shifts(self,week_offset,calendar_dict=None):
+        if calendar_dict == None:
+            free =  self.get_calendar(week_offset)['free']
+        else:    
+            free = calendar_dict['free']
+        return free
+
+    def print_calendar(self,calendar_dict):
+        days = {
+                0 : 'Monday',
+                1 : 'Tuesday',
+                2 : 'Wednesday',
+                3 : 'Thursday',
+                4 : 'Friday',
+                5 : 'Saturday',
+                6 : 'Sunday'
+               }
+        print ("%-10s: " + "%-11i"*8) % tuple(["shift "] + range(0,8)) 
+        print '-'*95
+        for day in range(0,7):
+            day_name = days[day]
+            xs = [calendar_dict[(day,shift)] for shift in range(0,8)] 
+            print ("%-10s: " + "%-10s "*8) % tuple([day_name] + xs) 
+
+    def is_free_shift(self,week_offset,day,shift,calendar_dict=None): 
+        if calendar_dict == None:
+            b = (day,shift) in self.get_free_shifts(week_offset)
+        else:
+            b = (day,shift) in self.get_free_shifts(week_offset,calendar_dict)
+        return b
 
     def login(self,pin):
         """ not implemented yet, raises and error """
