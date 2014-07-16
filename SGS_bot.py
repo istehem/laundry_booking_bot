@@ -71,6 +71,7 @@ class SGS_bot:
         """ 
             unbooks booked shift 
             slower then try_to_book, since it must check for booked shift
+            returns None if the shift as already started (SGS crap)
         """
         d = self.get_booked_shift()
         if not d:

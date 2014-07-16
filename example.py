@@ -10,9 +10,10 @@ class MyBot(SGS_bot):
     def run(self):
         self.hack_login()
         week_offset = 0
-        d = self.get_calendar(0)
-        terminate = False 
         while True:
+            booked_time = (-1,-1)
+            d = self.get_calendar(0)
+            terminate = False 
             while True:
                 if terminate:
                     break
@@ -20,22 +21,19 @@ class MyBot(SGS_bot):
                     if terminate:
                         break
                     for shift in range (0,8):
+                        if (weekday, shift) in d['booked']:
+                           booked_time = (weekday, shift)
+                           print "already has the earliest shift booked\n"
+                           terminate = True
+                           break
                         if self.is_free_shift(week_offset, weekday,shift,d):
-                            date = self.get_date_from_wd(week_offset,weekday)
                             bs = self.get_booked_shift()
                             if bs != None:
-                                if bs['date'] <= date and bs['interval'] <= shift:
-                                   print "already has the earliest shift booked\n"
-                                   terminate = True
-                                   break
-                                else:
-                                   self.try_to_unbook(bs['date'],bs['interval'])
-                            elif self.try_to_book(date, shift):
-                                print "successfully booked shift " + str(shift) + " at " + date 
-                                print "\n"
+                               self.try_to_unbook(bs['date'],bs['interval'])
+                            if self.try_to_book(date, shift):
+                                print "successfully booked shift " + str(shift) + " at " + date + "\n" 
                             else:
-                                print "unable to book shift " + str(shift) + " at " + date 
-                                print "\n"
+                                print "unable to book shift " + str(shift) + " at " + date + "\n" 
                             terminate = True
                             break
                 week_offset = week_offset + 1
