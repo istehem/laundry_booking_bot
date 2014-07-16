@@ -128,6 +128,19 @@ class SGS_bot:
         now = datetime.datetime.now() + datetime.timedelta(days=i)
         return ('%i-%02i-%02i' % (now.year,now.month,now.day))
 
+    def get_date_from_wd(self, week_offset, day):
+        """ 
+            returns the current date from week offset and week day 
+            if week_day > 6 return Null
+            both input parameters should be of type int
+        """
+        if day > 6 or day < 0:
+            #invalid date
+            return None
+        current_day = datetime.datetime.today().weekday() 
+        then = datetime.datetime.now() + datetime.timedelta(days=7*week_offset + day - current_day)
+        return ('%i-%02i-%02i' % (then.year,then.month,then.day))
+
     def get_interval(self):
         """
         each day is diveded into 8 intervals (0-7), 4h*8 = 24h = 1 day
