@@ -85,7 +85,8 @@ should&nbsp;return&nbsp;an&nbsp;integer&nbsp;specifying&nbsp;an&nbsp;<a href="__
 starts&nbsp;the&nbsp;algorithm</tt></dd></dl>
 
 <dl><dt><a name="SGS_bot-try_to_auto_unbook"><strong>try_to_auto_unbook</strong></a>(self)</dt><dd><tt>unbooks&nbsp;booked&nbsp;shift&nbsp;<br>
-slower&nbsp;then&nbsp;try_to_book,&nbsp;since&nbsp;it&nbsp;must&nbsp;check&nbsp;for&nbsp;booked&nbsp;shift</tt></dd></dl>
+slower&nbsp;then&nbsp;try_to_book,&nbsp;since&nbsp;it&nbsp;must&nbsp;check&nbsp;for&nbsp;booked&nbsp;shift<br>
+returns&nbsp;None&nbsp;if&nbsp;the&nbsp;shift&nbsp;as&nbsp;already&nbsp;started&nbsp;(SGS&nbsp;crap)</tt></dd></dl>
 
 <dl><dt><a name="SGS_bot-try_to_book"><strong>try_to_book</strong></a>(self, date, interval)</dt><dd><tt>tries&nbsp;to&nbsp;book&nbsp;a&nbsp;shift<br>
 returns&nbsp;True&nbsp;if&nbsp;shift&nbsp;was&nbsp;booked&nbsp;False&nbsp;otherwise</tt></dd></dl>
