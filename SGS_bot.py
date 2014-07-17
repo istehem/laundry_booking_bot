@@ -28,10 +28,15 @@ class SGS_bot:
             'Accept-Encoding' : 'utf-8',
           }
 
-    def __init__(self):
+    def __init__(self,hack_login=True):
         self.opener = self.create_opener()
         self.USER = str(self.user_number())
         self.OBJECT_NUMBER=str(self.object_number())
+        if hack_login:
+            self.hack_login()
+        else:
+            self.login()
+        self.booked_shift = self.get_booked_shift()
         self.run()
 
     def create_opener(self):
@@ -49,6 +54,10 @@ class SGS_bot:
         if interval < 0 or interval > 7:
             #invalid interval
             return False
+        if self.booked_shift:
+            #impossible to book more then one shift
+            return False
+
         values = {'command'    : 'book',
                   'PanelId'    : str(self.PANEL_ID),
                   'TypeId'     : str(self.TYPE_ID),
@@ -60,49 +69,74 @@ class SGS_bot:
         url_values = urllib.urlencode(values)
         full_url = self.BOOK_URL + '?' + url_values
         data = self.opener.open(full_url)
-
         #different error pages may contains the following strings
         #ej bokningsbart
         #Max antal framtida pass
-
-        return "Bokningstider" in data.read()
-
-    def try_to_auto_unbook(self):
-        """
-            unbooks booked shift
-            slower then try_to_book, since it must check for booked shift
-            returns None if the shift as already started (SGS crap)
-        """
-        d = self.get_booked_shift()
-        if not d:
-           return False
+        if "Bokningstider" in data.read():
+            self.booked_shift = self.get_booked_shift()
+            return True
         else:
-           return self.try_to_unbook(d['date'],d['interval'])
+            return False
 
-    def try_to_unbook(self,date,interval):
+    def force_book_first_free_shift(self):
+        """
+            works as book_first_shift, but if a shift is already booked
+            unbook this shift if there is an earlier shift availible
+        """
+        (week_offset,day,found_interval) = self.get_first_free_shift()
+        found_date = self.get_date_from_wd(week_offset,day)
+        if self.booked_shift:
+            booked_date     = self.booked_shift['date']
+            booked_interval = self.booked_shift['interval']
+            if booked_date > found_date or (booked_date == found_date and booked_interval > found_interval):
+                self.try_to_unbook()
+                self.try_to_book(found_date,found_interval)
+        else:
+            self.try_to_book(found_date,found_interval)
+        return self.booked_shift
+
+    def book_first_free_shift(self):
+        """
+            books the first availible shift and returns the booked shift
+            if a shift is allready booked it simply returns that shift
+        """
+        if self.booked_shift:
+            pass
+        else:
+            (week_offset,day,interval) = self.get_first_free_shift()
+            date = self.get_date_from_wd(week_offset,day)
+            self.try_to_book(date,interval)
+        return self.booked_shift
+
+    def try_to_unbook(self):
         """
             tries to unbook a shift
             returns True if shift was unbooked False otherwise
         """
-        if interval < 0 or interval > 7:
-            #invalid interval
+        bs = self.booked_shift
+        if not bs:
+            #no shift booked
             return False
+
         values = {'command'    : 'cancel',
                   'PanelId'    : str(self.PANEL_ID),
                   'TypeId'     : str(self.TYPE_ID),
                   'GroupId'    : str(self.GROUP_ID),
-                  'Date'       : date,
-                  'IntervalId' : str(interval),
+                  'Date'       : bs['date'],
+                  'IntervalId' : str(bs['interval']),
                   'NextPage'   : ''
                  }
         url_values = urllib.urlencode(values)
         full_url = self.BOOK_URL + '?' + url_values
         data = self.opener.open(full_url)
-
         #different error pages may contains the following strings
         #There is no row at position 0.
 
-        return "Bokningstider" in data.read()
+        if "Bokningstider" in data.read():
+            self.booked_shift = None
+            return True
+        else:
+            return False
 
     def get_booked_shift(self):
         """
@@ -121,7 +155,15 @@ class SGS_bot:
             #group 3 is the hour when the shift starts
             d['interval'] = ((int(m.group(3)) + 24 - 1) % 24) / 3
         else:
-            d = None
+            #Needed because a shift is not listed as booked (at SGS) if the shift has already started
+            b = self.get_calendar(0)['booked']
+            if b:
+                (day,interval) = b[0]
+                d['date'] = self.get_date_from_wd(0,day)
+                d['interval'] = interval
+                d['machines'] = '1-2'
+            else:
+                d = None
         return d
 
     def get_date(self,i):
@@ -152,7 +194,8 @@ class SGS_bot:
         return ((now.hour + 24 - 1) % 24) / 3
 
     def get_calendar(self,week_offset):
-        """ should return free shifts for a week """
+        """ should return info about shifts for a given week """
+        #TODO change tuples to dicts
         values = {
             'panelId'    : str(self.PANEL_ID),
             'weekOffset' : str(week_offset),
@@ -196,14 +239,18 @@ class SGS_bot:
             free = calendar_dict['free']
         return free
 
-    def get_first_free_shift(week_offset,d=None):
-        xs = get_free_shifts(self,week_offset,d):
-        if xs:
-            return sorted(xs)[0]
-        else:
-            return None
+    def get_first_free_shift(self):
+        week_offset = 0
+        while True:
+            d  = self.get_calendar(week_offset)
+            xs = self.get_free_shifts(week_offset,d)
+            if xs:
+                return (week_offset,) + sorted(xs)[0]
+            week_offset = week_6offset + 1
 
-    def print_calendar(self,calendar_dict):
+    def print_calendar(self,calendar_dict=None):
+        if calendar_dict == None:
+            calendar_dict = self.calendar
         days = {
                 0 : 'Monday',
                 1 : 'Tuesday',
