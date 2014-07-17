@@ -68,8 +68,8 @@ class SGS_bot:
         return "Bokningstider" in data.read()
 
     def try_to_auto_unbook(self):
-        """ 
-            unbooks booked shift 
+        """
+            unbooks booked shift
             slower then try_to_book, since it must check for booked shift
             returns None if the shift as already started (SGS crap)
         """
@@ -101,12 +101,12 @@ class SGS_bot:
 
         #different error pages may contains the following strings
         #There is no row at position 0.
-        
+
         return "Bokningstider" in data.read()
 
     def get_booked_shift(self):
         """
-            if a shift is booked return a dict containing the date, 
+            if a shift is booked return a dict containing the date,
             booked machines and interval otherwise return None
         """
         data = self.opener.open(self.BOOKINGS_URL)
@@ -122,23 +122,23 @@ class SGS_bot:
             d['interval'] = ((int(m.group(3)) + 24 - 1) % 24) / 3
         else:
             d = None
-        return d 
-    
+        return d
+
     def get_date(self,i):
         """ returns the current date with offset i """
         now = datetime.datetime.now() + datetime.timedelta(days=i)
         return ('%i-%02i-%02i' % (now.year,now.month,now.day))
 
     def get_date_from_wd(self, week_offset, day):
-        """ 
-            returns the current date from week offset and week day 
+        """
+            returns the current date from week offset and week day
             if week_day > 6 return Null
             both input parameters should be of type int
         """
         if day > 6 or day < 0:
             #invalid date
             return None
-        current_day = datetime.datetime.today().weekday() 
+        current_day = datetime.datetime.today().weekday()
         then = datetime.datetime.now() + datetime.timedelta(days=7*week_offset + day - current_day)
         return ('%i-%02i-%02i' % (then.year,then.month,then.day))
 
@@ -171,7 +171,7 @@ class SGS_bot:
                'reserved' : [],
                'booked'   : []
             }
-        
+
         r = re.compile('icon_(.*?)\.gif')
         statuses = {
                     'plus'   : 'free',
@@ -182,19 +182,26 @@ class SGS_bot:
         for i, row in enumerate(xs):
             text = r.search(row).group(1)
             text = statuses[text]
-            d[(i % 7, i / 7)] = text   
+            d[(i % 7, i / 7)] = text
             ys = d[text]
             ys.append((i % 7, i / 7))
-            d[text] = ys             
-            
+            d[text] = ys
+
         return d
 
     def get_free_shifts(self,week_offset,calendar_dict=None):
         if calendar_dict == None:
             free =  self.get_calendar(week_offset)['free']
-        else:    
+        else:
             free = calendar_dict['free']
         return free
+
+    def get_first_free_shift(week_offset,d=None):
+        xs = get_free_shifts(self,week_offset,d):
+        if xs:
+            return sorted(xs)[0]
+        else:
+            return None
 
     def print_calendar(self,calendar_dict):
         days = {
@@ -206,14 +213,14 @@ class SGS_bot:
                 5 : 'Saturday',
                 6 : 'Sunday'
                }
-        print ("%-10s: " + "%-11i"*8) % tuple(["shift "] + range(0,8)) 
+        print ("%-10s: " + "%-11i"*8) % tuple(["shift "] + range(0,8))
         print '-'*95
         for day in range(0,7):
             day_name = days[day]
-            xs = [calendar_dict[(day,shift)] for shift in range(0,8)] 
-            print ("%-10s: " + "%-10s "*8) % tuple([day_name] + xs) 
+            xs = [calendar_dict[(day,shift)] for shift in range(0,8)]
+            print ("%-10s: " + "%-10s "*8) % tuple([day_name] + xs)
 
-    def is_free_shift(self,week_offset,day,shift,calendar_dict=None): 
+    def is_free_shift(self,week_offset,day,shift,calendar_dict=None):
         if calendar_dict == None:
             b = (day,shift) in self.get_free_shifts(week_offset)
         else:
