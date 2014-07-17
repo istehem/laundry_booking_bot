@@ -9,8 +9,8 @@ class MyBot(SGS_bot):
     """
     def run(self):
         self.hack_login()
-        week_offset = 0
         while True:
+            week_offset = 0
             booked_time = (-1,-1)
             terminate = False 
             while True:
@@ -40,7 +40,7 @@ class MyBot(SGS_bot):
                 week_offset = week_offset + 1
             d = self.get_calendar(week_offset-1)
             self.print_calendar(d)
-            time.sleep(3600)
+            time.sleep(60)
     def object_number(self):
         return 503004325
     def user_number(self):
