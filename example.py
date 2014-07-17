@@ -12,9 +12,9 @@ class MyBot(SGS_bot):
         week_offset = 0
         while True:
             booked_time = (-1,-1)
-            d = self.get_calendar(0)
             terminate = False 
             while True:
+                d = self.get_calendar(week_offset)
                 if terminate:
                     break
                 for weekday in range(0,6):
@@ -27,6 +27,7 @@ class MyBot(SGS_bot):
                            terminate = True
                            break
                         if self.is_free_shift(week_offset, weekday,shift,d):
+                            date = self.get_date_from_wd(week_offset,weekday) 
                             bs = self.get_booked_shift()
                             if bs != None:
                                self.try_to_unbook(bs['date'],bs['interval'])
