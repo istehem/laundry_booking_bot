@@ -83,7 +83,6 @@ class SGS_bot:
             works as book_first_shift, but if a shift is already booked
             unbook this shift if there is an earlier shift availible
         """
-        #(week_offset,day,found_interval) = self.get_first_free_shift()
         found_shift = self.get_first_free_shift()
         found_date = found_shift['date']
         if self.booked_shift:
@@ -241,7 +240,7 @@ class SGS_bot:
         return d
 
     def get_free_shifts(self,week_offset,calendar_dict=None):
-        if calendar_dict == None:
+        if not calendar_dict:
             free =  self.get_calendar(week_offset)['free']
         else:
             free = calendar_dict['free']
