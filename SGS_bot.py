@@ -83,16 +83,17 @@ class SGS_bot:
             works as book_first_shift, but if a shift is already booked
             unbook this shift if there is an earlier shift availible
         """
-        (week_offset,day,found_interval) = self.get_first_free_shift()
-        found_date = self.get_date_from_wd(week_offset,day)
+        #(week_offset,day,found_interval) = self.get_first_free_shift()
+        found_shift = self.get_first_free_shift()
+        found_date = found_shift['date']
         if self.booked_shift:
             booked_date     = self.booked_shift['date']
             booked_interval = self.booked_shift['interval']
             if booked_date > found_date or (booked_date == found_date and booked_interval > found_interval):
                 self.try_to_unbook()
-                self.try_to_book(found_date,found_interval)
+                self.try_to_book(found_date,found_shift['interval'])
         else:
-            self.try_to_book(found_date,found_interval)
+            self.try_to_book(found_date,found_shift['interval'])
         return self.booked_shift
 
     def book_first_free_shift(self):
@@ -103,9 +104,8 @@ class SGS_bot:
         if self.booked_shift:
             pass
         else:
-            (week_offset,day,interval) = self.get_first_free_shift()
-            date = self.get_date_from_wd(week_offset,day)
-            self.try_to_book(date,interval)
+            first_shift = self.get_first_free_shift()
+            self.try_to_book(found_shift['date'], found_shift['interval'])
         return self.booked_shift
 
     def try_to_unbook(self):
@@ -148,23 +148,21 @@ class SGS_bot:
         cleanr = re.compile('<.*?>')
         text = re.sub(cleanr,'',html)
         m = re.search('rden(\d\d\d\d-\d\d-\d\d).*(\d-\d)(\d\d):\d\d-\d\d:\d\d',text)
-        d = dict()
+        shift = dict()
         if m:
-            d['date']     = m.group(1)
-            d['machines'] = m.group(2)
+            shift['date']     = m.group(1)
+            shift['machines'] = m.group(2)
             #group 3 is the hour when the shift starts
-            d['interval'] = ((int(m.group(3)) + 24 - 1) % 24) / 3
+            shift['interval'] = ((int(m.group(3)) + 24 - 1) % 24) / 3
+            shift['status']   = 'booked'
         else:
             #Needed because a shift is not listed as booked (at SGS) if the shift has already started
-            b = self.get_calendar(0)['booked']
-            if b:
-                (day,interval) = b[0]
-                d['date'] = self.get_date_from_wd(0,day)
-                d['interval'] = interval
-                d['machines'] = '1-2'
+            shifts = self.get_calendar(0)['booked']
+            if shifts:
+                shift = shifts[0]
             else:
-                d = None
-        return d
+                shift = None
+        return shift
 
     def get_date(self,i):
         """ returns the current date with offset i """
@@ -195,7 +193,6 @@ class SGS_bot:
 
     def get_calendar(self,week_offset):
         """ should return info about shifts for a given week """
-        #TODO change tuples to dicts
         values = {
             'panelId'    : str(self.PANEL_ID),
             'weekOffset' : str(week_offset),
@@ -225,9 +222,20 @@ class SGS_bot:
         for i, row in enumerate(xs):
             text = r.search(row).group(1)
             text = statuses[text]
-            d[(i % 7, i / 7)] = text
+            day = i % 7
+            interval = i / 7
+            shift = {
+                     'status'      : text,
+                     'interval'    : interval,
+                     'machines'    : '1-2',
+                     'date'        : self.get_date_from_wd(week_offset, day),
+                     'day'         : day,
+                     'week_offset' : week_offset
+                    }
+
+            d[(day, interval)] = shift
             ys = d[text]
-            ys.append((i % 7, i / 7))
+            ys.append(shift)
             d[text] = ys
 
         return d
@@ -242,15 +250,12 @@ class SGS_bot:
     def get_first_free_shift(self):
         week_offset = 0
         while True:
-            d  = self.get_calendar(week_offset)
-            xs = self.get_free_shifts(week_offset,d)
+            xs = self.get_free_shifts(week_offset)
             if xs:
-                return (week_offset,) + sorted(xs)[0]
+                return sorted(xs,lambda x,y: cmp((x['day'],x['interval']),(y['day'],y['interval'])))[0]
             week_offset = week_6offset + 1
 
-    def print_calendar(self,calendar_dict=None):
-        if calendar_dict == None:
-            calendar_dict = self.calendar
+    def print_calendar(self,calendar_dict):
         days = {
                 0 : 'Monday',
                 1 : 'Tuesday',
@@ -264,14 +269,14 @@ class SGS_bot:
         print '-'*95
         for day in range(0,7):
             day_name = days[day]
-            xs = [calendar_dict[(day,shift)] for shift in range(0,8)]
+            xs = [calendar_dict[(day,shift)]['status'] for shift in range(0,8)]
             print ("%-10s: " + "%-10s "*8) % tuple([day_name] + xs)
 
     def is_free_shift(self,week_offset,day,shift,calendar_dict=None):
         if calendar_dict == None:
-            b = (day,shift) in self.get_free_shifts(week_offset)
+            b = (day,shift) in [(shift['day'],shift['interval']) for shift in self.get_free_shifts(week_offset)]
         else:
-            b = (day,shift) in self.get_free_shifts(week_offset,calendar_dict)
+            b = (day,shift) in [(shift['day'],shift['interval']) for shift in self.get_free_shifts(week_offset, calendar_dict)]
         return b
 
     def login(self,pin):
