@@ -85,6 +85,7 @@ class SGS_bot:
         """
         found_shift = self.get_first_free_shift()
         found_date = found_shift['date']
+        found_interval = found_shift['interval']
         if self.booked_shift:
             booked_date     = self.booked_shift['date']
             booked_interval = self.booked_shift['interval']
