@@ -1,2 +1,2 @@
-Right now only machine 1-2 can be booked, this should
-be extended to all machines
+Fix get_booked_shift to handle all bookable groups and return
+a shift dict that contains all key values
