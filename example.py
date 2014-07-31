@@ -8,10 +8,8 @@ class MyBot(SGS_bot):
         if a shift is already booked, try to book an earlier shift"
     """
     def run(self):
-        #while True:
-            bs = self.force_book_first_free_shift()
-            print ("booked shift is %i at %s with machines %s") % (bs['interval'],bs['date'],bs['machines'])
-        #    time.sleep(10)
+        shift = self.force_book_first_free_shift()
+        self.print_calendar(self.get_calendar(shift['week_offset'],shift['machines_id']))
     def object_number(self):
         return 503004325
     def user_number(self):

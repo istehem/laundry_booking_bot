@@ -7,6 +7,7 @@ import abc
 import sys
 import re
 
+
 class SGS_bot:
     __metaclass__ = abc.ABCMeta
 
@@ -90,7 +91,7 @@ class SGS_bot:
             booked_date     = self.booked_shift['date']
             booked_interval = self.booked_shift['interval']
             if booked_date > found_date or (booked_date == found_date and booked_interval > found_interval):
-                self.try_to_unbook(machines_id)
+                self.try_to_unbook(self.booked_shift['machines_id'])
                 self.try_to_book(found_date,found_shift['interval'],found_shift['machines_id'])
         else:
             self.try_to_book(found_date,found_shift['interval'],found_shift['machines_id'])
@@ -143,7 +144,6 @@ class SGS_bot:
             if a shift is booked return a dict containing the date,
             booked machines and interval otherwise return None
         """
-        machines_id = self.GROUP_IDs[1]
         data = self.opener.open(self.BOOKINGS_URL)
         html = html = data.read()
         cleanr = re.compile('<.*?>')
@@ -151,18 +151,24 @@ class SGS_bot:
         m = re.search('rden(\d\d\d\d-\d\d-\d\d).*(\d-\d)(\d\d):\d\d-\d\d:\d\d',text)
         shift = dict()
         if m:
-            shift['date']     = m.group(1)
-            shift['machines'] = m.group(2)
+            machines = m.group(2)
+            date = m.group(1)
             #group 3 is the hour when the shift starts
+            shift['status'] = 'booked'
             shift['interval'] = ((int(m.group(3)) + 24 - 1) % 24) / 3
-            shift['status']   = 'booked'
+            shift['machines_id'] = self.from_machines(machines)
+            shift['date'] = date
+            shift['day']  = self.weekday_from_date(date)
+            shift['week_offset'] = self.week_offset_from_date(date)
+            shift['machines'] = machines
         else:
             #Needed because a shift is not listed as booked (at SGS) if the shift has already started
-            shifts = self.get_calendar(0,machines_id)['booked']
-            if shifts:
-                shift = shifts[0]
-            else:
-                shift = None
+            shift = None
+            for machines_id in self.GROUP_IDs:
+                shifts = self.get_calendar(0,machines_id)['booked']
+                if shifts:
+                    shift = shifts[0]
+                    break
         return shift
 
     def get_date(self,i):
@@ -189,6 +195,28 @@ class SGS_bot:
                     self.GROUP_IDs[1] : '3-4',
                     self.GROUP_IDs[2] : '5-6'
                 }.get(machines_id,'unknown')
+
+    def from_machines(self,machines):
+        return  {
+                    '1-2' : self.GROUP_IDs[0],
+                    '3-4' : self.GROUP_IDs[1],
+                    '5-6' : self.GROUP_IDs[2]
+                }.get(machines,'unknown')
+
+    def week_offset_from_date(self,date):
+        """ use with care, fails if an invalid date is supplied """
+        year, month, day = [int(x) for x in date.split('-')]
+        then = datetime.date(year,month,day)
+        that_monday = then - datetime.timedelta(then.weekday())
+        today = datetime.datetime.today().date()
+        this_monday = today - datetime.timedelta(today.weekday())
+        return (that_monday - this_monday).days / 7
+
+    def weekday_from_date(self,date):
+        """ use with care, fails if an invalid date is supplied """
+        year, month, day = [int(x) for x in date.split('-')]
+        datetime_date = datetime.date(year,month,day)
+        return datetime_date.weekday()
 
     def get_interval(self):
         """
@@ -277,13 +305,13 @@ class SGS_bot:
                 6 : 'Sunday'
                }
         print "statuses for shifts %s using week offset %s" % (calendar_dict['machines'],calendar_dict['week_offset'])
-        print '-'*95
-        print ("%-10s: " + "%-11i"*8) % tuple(["shift"] + range(0,8))
-        print '-'*95
+        print '-'*81
+        print ("%-10s: " + "%-9i"*8) % tuple(["shift"] + range(0,8))
+        print '-'*81
         for day in range(0,7):
             day_name = days[day]
-            xs = [calendar_dict[(day,shift)]['status'] for shift in range(0,8)]
-            print ("%-10s: " + "%-10s "*8) % tuple([day_name] + xs)
+            xs = [self.color(calendar_dict[(day,shift)]['status']) for shift in range(0,8)]
+            print ("%-10s: " + "%-17s "*8) % tuple([day_name] + xs)
 
     def is_free_shift(self,week_offset,day,shift,calendar_dict=None):
         if calendar_dict == None:
@@ -310,6 +338,21 @@ class SGS_bot:
         full_url = self.LOGIN_URL + '?' + url_values
         self.opener.open(full_url)
         self.opener.open('https://www.sgsstudentbostader.se/ext_gw.aspx?module=wwwash&lang=se?loggedin=true')
+
+    def color(self,text):
+        colors = {
+                 'BLUE'   : '\033[94m',
+                 'GREEN'  : '\033[92m',
+                 'YELLOW' : '\033[93m',
+                 'RED'    : '\033[91m',
+                 'ENDC'   : '\033[0m'
+                 }
+        return  {
+                'free'     : colors['GREEN'] + text + colors['ENDC'],
+                'reserved' : colors['RED'] + text + colors['ENDC'],
+                'passed'   : colors['YELLOW'] + text + colors['ENDC'],
+                'booked'   : colors['BLUE'] + text + colors['ENDC']
+                }.get(text,text)
 
     @abc.abstractmethod
     def run(self):

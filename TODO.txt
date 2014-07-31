@@ -1,2 +1,4 @@
-Fix get_booked_shift to handle all bookable groups and return
-a shift dict that contains all key values
+Needs a lot of debugging
+Extend bot to look for more places that can be booked,
+preferible the laundry room in the B house
+make shift and calendar to classes instead of dicts
