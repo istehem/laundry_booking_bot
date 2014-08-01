@@ -59,10 +59,14 @@ if&nbsp;a&nbsp;shift&nbsp;is&nbsp;allready&nbsp;booked&nbsp;it&nbsp;simply&nbsp;
 <dl><dt><a name="SGS_bot-force_book_first_free_shift"><strong>force_book_first_free_shift</strong></a>(self)</dt><dd><tt>works&nbsp;as&nbsp;book_first_shift,&nbsp;but&nbsp;if&nbsp;a&nbsp;shift&nbsp;is&nbsp;already&nbsp;booked<br>
 unbook&nbsp;this&nbsp;shift&nbsp;if&nbsp;there&nbsp;is&nbsp;an&nbsp;earlier&nbsp;shift&nbsp;availible</tt></dd></dl>
 
+<dl><dt><a name="SGS_bot-from_machines"><strong>from_machines</strong></a>(self, machines)</dt></dl>
+
+<dl><dt><a name="SGS_bot-from_machines_id"><strong>from_machines_id</strong></a>(self, machines_id)</dt></dl>
+
 <dl><dt><a name="SGS_bot-get_booked_shift"><strong>get_booked_shift</strong></a>(self)</dt><dd><tt>if&nbsp;a&nbsp;shift&nbsp;is&nbsp;booked&nbsp;return&nbsp;a&nbsp;dict&nbsp;containing&nbsp;the&nbsp;date,<br>
 booked&nbsp;machines&nbsp;and&nbsp;interval&nbsp;otherwise&nbsp;return&nbsp;None</tt></dd></dl>
 
-<dl><dt><a name="SGS_bot-get_calendar"><strong>get_calendar</strong></a>(self, week_offset)</dt><dd><tt>should&nbsp;return&nbsp;info&nbsp;about&nbsp;shifts&nbsp;for&nbsp;a&nbsp;given&nbsp;week</tt></dd></dl>
+<dl><dt><a name="SGS_bot-get_calendar"><strong>get_calendar</strong></a>(self, week_offset, machines_id)</dt><dd><tt>should&nbsp;return&nbsp;info&nbsp;about&nbsp;shifts&nbsp;for&nbsp;a&nbsp;given&nbsp;week</tt></dd></dl>
 
 <dl><dt><a name="SGS_bot-get_date"><strong>get_date</strong></a>(self, i)</dt><dd><tt>returns&nbsp;the&nbsp;current&nbsp;date&nbsp;with&nbsp;offset&nbsp;i</tt></dd></dl>
 
@@ -72,7 +76,7 @@ both&nbsp;input&nbsp;parameters&nbsp;should&nbsp;be&nbsp;of&nbsp;type&nbsp;int</
 
 <dl><dt><a name="SGS_bot-get_first_free_shift"><strong>get_first_free_shift</strong></a>(self)</dt></dl>
 
-<dl><dt><a name="SGS_bot-get_free_shifts"><strong>get_free_shifts</strong></a>(self, week_offset, calendar_dict<font color="#909090">=None</font>)</dt></dl>
+<dl><dt><a name="SGS_bot-get_free_shifts"><strong>get_free_shifts</strong></a>(self, week_offset)</dt></dl>
 
 <dl><dt><a name="SGS_bot-get_interval"><strong>get_interval</strong></a>(self)</dt><dd><tt>each&nbsp;day&nbsp;is&nbsp;diveded&nbsp;into&nbsp;8&nbsp;intervals&nbsp;(0-7),&nbsp;4h*8&nbsp;=&nbsp;24h&nbsp;=&nbsp;1&nbsp;day<br>
 first&nbsp;shift&nbsp;(0)&nbsp;starts&nbsp;at&nbsp;01:00<br>
@@ -88,19 +92,23 @@ this&nbsp;is&nbsp;hack&nbsp;and&nbsp;works&nbsp;due&nbsp;to&nbsp;a&nbsp;security
 <dl><dt><a name="SGS_bot-object_number"><strong>object_number</strong></a>(self)</dt><dd><tt>abstract&nbsp;method<br>
 should&nbsp;return&nbsp;an&nbsp;integer&nbsp;specifying&nbsp;an&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;number&nbsp;for&nbsp;the&nbsp;apartment</tt></dd></dl>
 
-<dl><dt><a name="SGS_bot-print_calendar"><strong>print_calendar</strong></a>(self, calendar_dict<font color="#909090">=None</font>)</dt></dl>
+<dl><dt><a name="SGS_bot-print_calendar"><strong>print_calendar</strong></a>(self, calendar_dict)</dt></dl>
 
 <dl><dt><a name="SGS_bot-run"><strong>run</strong></a>(self)</dt><dd><tt>abstract&nbsp;method<br>
 starts&nbsp;the&nbsp;algorithm</tt></dd></dl>
 
-<dl><dt><a name="SGS_bot-try_to_book"><strong>try_to_book</strong></a>(self, date, interval)</dt><dd><tt>tries&nbsp;to&nbsp;book&nbsp;a&nbsp;shift<br>
+<dl><dt><a name="SGS_bot-try_to_book"><strong>try_to_book</strong></a>(self, date, interval, machines_id)</dt><dd><tt>tries&nbsp;to&nbsp;book&nbsp;a&nbsp;shift<br>
 returns&nbsp;True&nbsp;if&nbsp;shift&nbsp;was&nbsp;booked&nbsp;False&nbsp;otherwise</tt></dd></dl>
 
-<dl><dt><a name="SGS_bot-try_to_unbook"><strong>try_to_unbook</strong></a>(self)</dt><dd><tt>tries&nbsp;to&nbsp;unbook&nbsp;a&nbsp;shift<br>
+<dl><dt><a name="SGS_bot-try_to_unbook"><strong>try_to_unbook</strong></a>(self, machines_id)</dt><dd><tt>tries&nbsp;to&nbsp;unbook&nbsp;a&nbsp;ihift<br>
 returns&nbsp;True&nbsp;if&nbsp;shift&nbsp;was&nbsp;unbooked&nbsp;False&nbsp;otherwise</tt></dd></dl>
 
 <dl><dt><a name="SGS_bot-user_number"><strong>user_number</strong></a>(self)</dt><dd><tt>abstract&nbsp;method<br>
 should&nbsp;return&nbsp;an&nbsp;integer&nbsp;specifying&nbsp;an&nbsp;user&nbsp;number</tt></dd></dl>
+
+<dl><dt><a name="SGS_bot-week_offset_from_date"><strong>week_offset_from_date</strong></a>(self, date)</dt><dd><tt>use&nbsp;with&nbsp;care,&nbsp;fails&nbsp;if&nbsp;an&nbsp;invalid&nbsp;date&nbsp;is&nbsp;supplied</tt></dd></dl>
+
+<dl><dt><a name="SGS_bot-weekday_from_date"><strong>weekday_from_date</strong></a>(self, date)</dt><dd><tt>use&nbsp;with&nbsp;care,&nbsp;fails&nbsp;if&nbsp;an&nbsp;invalid&nbsp;date&nbsp;is&nbsp;supplied</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -118,7 +126,7 @@ Data and other attributes defined here:<br>
 
 <dl><dt><strong>CALENDAR_URL</strong> = 'https://tvatta.sgsstudentbostader.se/wwwashcalendar.aspx'</dl>
 
-<dl><dt><strong>GROUP_ID</strong> = 267946</dl>
+<dl><dt><strong>GROUP_IDs</strong> = [267946, 267947, 267948]</dl>
 
 <dl><dt><strong>HEADERS</strong> = {'Accept': '*/*', 'Accept-Encoding': 'utf-8', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0 Iceweasel/29.0.1'}</dl>
 

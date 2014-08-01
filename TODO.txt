@@ -1,4 +1,6 @@
 Needs a lot of debugging
 Extend bot to look for more places that can be booked,
 preferible the laundry room in the B house
-make shift and calendar to classes instead of dicts
+make shift and calendar to classes instead of dicts,
+then its possible to use __repr__(self): to defne how the calendar
+should be printed
