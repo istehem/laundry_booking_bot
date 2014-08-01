@@ -295,6 +295,20 @@ class SGS_bot:
             week_offset = week_6offset + 1
 
     def print_calendar(self,calendar_dict):
+        def color(text):
+            colors = {
+                     'BLUE'   : '\033[94m',
+                     'GREEN'  : '\033[92m',
+                     'YELLOW' : '\033[93m',
+                     'RED'    : '\033[91m',
+                     'ENDC'   : '\033[0m'
+                     }
+            return {
+                   'free'     : colors['GREEN'] + text + colors['ENDC'],
+                   'reserved' : colors['RED'] + text + colors['ENDC'],
+                   'passed'   : colors['YELLOW'] + text + colors['ENDC'],
+                   'booked'   : colors['BLUE'] + text + colors['ENDC']
+                   }.get(text,text)
         days = {
                 0 : 'Monday',
                 1 : 'Tuesday',
@@ -310,7 +324,7 @@ class SGS_bot:
         print '-'*81
         for day in range(0,7):
             day_name = days[day]
-            xs = [self.color(calendar_dict[(day,shift)]['status']) for shift in range(0,8)]
+            xs = [color(calendar_dict[(day,shift)]['status']) for shift in range(0,8)]
             print ("%-10s: " + "%-17s "*8) % tuple([day_name] + xs)
 
     def is_free_shift(self,week_offset,day,shift,calendar_dict=None):
@@ -339,20 +353,6 @@ class SGS_bot:
         self.opener.open(full_url)
         self.opener.open('https://www.sgsstudentbostader.se/ext_gw.aspx?module=wwwash&lang=se?loggedin=true')
 
-    def color(self,text):
-        colors = {
-                 'BLUE'   : '\033[94m',
-                 'GREEN'  : '\033[92m',
-                 'YELLOW' : '\033[93m',
-                 'RED'    : '\033[91m',
-                 'ENDC'   : '\033[0m'
-                 }
-        return  {
-                'free'     : colors['GREEN'] + text + colors['ENDC'],
-                'reserved' : colors['RED'] + text + colors['ENDC'],
-                'passed'   : colors['YELLOW'] + text + colors['ENDC'],
-                'booked'   : colors['BLUE'] + text + colors['ENDC']
-                }.get(text,text)
 
     @abc.abstractmethod
     def run(self):
