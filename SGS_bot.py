@@ -36,7 +36,7 @@ class SGS_bot:
         if hack_login:
             self.hack_login()
         else:
-            self.login()
+            self.login(self.password())
         self.booked_shift = self.get_booked_shift()
         self.run()
 
