@@ -6,7 +6,7 @@ import time
 import abc
 import sys
 import re
-
+from classes import *
 
 class SGS_bot:
     __metaclass__ = abc.ABCMeta
@@ -165,7 +165,7 @@ class SGS_bot:
             #Needed because a shift is not listed as booked (at SGS) if the shift has already started
             shift = None
             for machines_id in self.GROUP_IDs:
-                shifts = self.get_calendar(0,machines_id)['booked']
+                shifts = self.get_calendar(0,machines_id).statuses['booked']
                 if shifts:
                     shift = shifts[0]
                     break
@@ -241,16 +241,10 @@ class SGS_bot:
         html = data.read()
         r = re.compile('<img src="images/icon.*?gif.*?>')
         xs = r.findall(html)
-        d = {
-               'free'        : [],
-               'passed'      : [],
-               'reserved'    : [],
-               'booked'      : [],
-               'machines_id' : machines_id,
-               'machines'    : self.from_machines_id(machines_id),
-               'week_offset' : week_offset
-            }
-
+        c = calendar()
+        c.machines_id = machines_id
+        c.machines = self.from_machines_id(machines_id)
+        c.week_offset = week_offset
         r = re.compile('icon_(.*?)\.gif')
         statuses = {
                     'plus'   : 'free',
@@ -273,17 +267,18 @@ class SGS_bot:
                      'machines'    : self.from_machines_id(machines_id)
                     }
 
-            d[(day, interval)] = shift
-            ys = d[text]
+            #d[(day, interval)] = shift
+            c.items[(day, interval)] = shift
+            ys = c.statuses[text]
             ys.append(shift)
-            d[text] = ys
+            c.statuses[text]= ys
 
-        return d
+        return c
 
     def get_free_shifts(self,week_offset):
         free = []
         for machines_id in self.GROUP_IDs:
-            free =  free + self.get_calendar(week_offset,machines_id)['free']
+            free =  free + self.get_calendar(week_offset,machines_id).statuses['free']
         return free
 
     def get_first_free_shift(self):
@@ -293,39 +288,6 @@ class SGS_bot:
             if xs:
                 return sorted(xs,lambda x,y: cmp((x['day'],x['interval']),(y['day'],y['interval'])))[0]
             week_offset = week_6offset + 1
-
-    def print_calendar(self,calendar_dict):
-        def color(text):
-            colors = {
-                     'BLUE'   : '\033[94m',
-                     'GREEN'  : '\033[92m',
-                     'YELLOW' : '\033[93m',
-                     'RED'    : '\033[91m',
-                     'ENDC'   : '\033[0m'
-                     }
-            return {
-                   'free'     : colors['GREEN'] + text + colors['ENDC'],
-                   'reserved' : colors['RED'] + text + colors['ENDC'],
-                   'passed'   : colors['YELLOW'] + text + colors['ENDC'],
-                   'booked'   : colors['BLUE'] + text + colors['ENDC']
-                   }.get(text,text)
-        days = {
-                0 : 'Monday',
-                1 : 'Tuesday',
-                2 : 'Wednesday',
-                3 : 'Thursday',
-                4 : 'Friday',
-                5 : 'Saturday',
-                6 : 'Sunday'
-               }
-        print "statuses for shifts %s using week offset %s" % (calendar_dict['machines'],calendar_dict['week_offset'])
-        print '-'*81
-        print ("%-10s: " + "%-9i"*8) % tuple(["shift"] + range(0,8))
-        print '-'*81
-        for day in range(0,7):
-            day_name = days[day]
-            xs = [color(calendar_dict[(day,shift)]['status']) for shift in range(0,8)]
-            print ("%-10s: " + "%-17s "*8) % tuple([day_name] + xs)
 
     def is_free_shift(self,week_offset,day,shift,calendar_dict=None):
         if calendar_dict == None:

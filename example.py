@@ -9,7 +9,8 @@ class MyBot(SGS_bot):
     """
     def run(self):
         shift = self.force_book_first_free_shift()
-        self.print_calendar(self.get_calendar(shift['week_offset'],shift['machines_id']))
+        c = self.get_calendar(shift['week_offset'],shift['machines_id'])
+        print c
     def object_number(self):
         return 503004325
     def user_number(self):
